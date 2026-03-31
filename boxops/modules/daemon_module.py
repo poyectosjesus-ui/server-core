@@ -92,7 +92,7 @@ def config_daemon():
     if env_path.exists():
         env_content = env_path.read_text()
         
-    lines = env_content.split("\\n")
+    lines = env_content.split("\n")
     new_lines = []
     found_token, found_chat = False, False
     
@@ -112,7 +112,7 @@ def config_daemon():
         new_lines.append(f"TELEGRAM_CHAT_ID={chat_id}")
         
     env_path.parent.mkdir(parents=True, exist_ok=True)
-    env_path.write_text("\\n".join(new_lines) + "\\n")
+    env_path.write_text("\n".join(new_lines) + "\n")
     
     console.print(f"[bold green]✔ Credenciales de Telegram inyectadas en {env_path}[/bold green]")
     console.print("Recuerda ejecutar 'boxops daemon stop' y 'boxops daemon start' para que el vigilante adopte los nuevos tokens.")

@@ -62,7 +62,7 @@ networks:
 """
     (app_dir / "docker-compose.yml").write_text(compose_content)
     
-    console.print(f"\\n>> Conectando '{app_name}' a la red de descubrimiento Traefik...")
+    console.print(f"\n>> Conectando '{app_name}' a la red de descubrimiento Traefik...")
     success, _ = run_command(["docker", "compose", "up", "-d"], cwd=app_dir)
     
     if success:
@@ -162,10 +162,10 @@ def push_app():
     
     success, out = run_command(rsync_cmd, capture_output=True)
     if not success:
-        console.print(f"[red]Error sincronizando:[/red]\\n{out}")
+        console.print(f"[red]Error sincronizando:[/red]\n{out}")
         return
         
-    console.print(f"\\n[bold cyan]>> Invocando BoxOps Remoto de forma interactiva...[/bold cyan]")
+    console.print(f"\n[bold cyan]>> Invocando BoxOps Remoto de forma interactiva...[/bold cyan]")
     
     ssh_cmd = [
         "ssh", "-t", "-p", str(port), f"{user}@{ip}",

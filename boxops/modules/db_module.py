@@ -37,13 +37,13 @@ def generate_strong_password(length=16):
 def get_postgres_users(host: str, admin_user: str) -> list:
     success, out = run_command(["docker", "exec", "-i", host, "psql", "-U", admin_user, "-tAc", "SELECT usename FROM pg_user;"], capture_output=True)
     if success:
-        return [u.strip() for u in out.split('\\n') if u.strip()]
+        return [u.strip() for u in out.split('\n') if u.strip()]
     return []
 
 def get_mysql_users(host: str, admin_user: str, admin_pass: str) -> list:
     success, out = run_command(["docker", "exec", "-i", host, "mysql", "-u", admin_user, f"-p{admin_pass}", "-e", "SELECT user FROM mysql.user;"], capture_output=True)
     if success:
-        lines = out.split('\\n')
+        lines = out.split('\n')
         # skip header 'user'
         if len(lines) > 1:
             return [u.strip() for u in lines[1:] if u.strip()]

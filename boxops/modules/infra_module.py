@@ -296,7 +296,7 @@ networks:
 def infra_wizard():
     """Asistente interactivo inteligente para desplegar toda la infraestructura."""
     console.print("[bold bright_blue]🪄 Asistente de Infraestructura Global BoxOps[/bold bright_blue]")
-    console.print("Este asistente configurará los servicios core de forma segura e idempotente.\\n")
+    console.print("Este asistente configurará los servicios core de forma segura e idempotente.\n")
     
     # === Telegram Config ===
     env_file = INFRA_DIR / ".env"
@@ -306,8 +306,8 @@ def infra_wizard():
         if setup_tg:
             tg_token = typer.prompt("Introduce el TOKEN de tu Bot de Telegram", hide_input=True)
             tg_chat = typer.prompt("Introduce tu Chat ID de Telegram")
-            env_file.write_text(f"TELEGRAM_BOT_TOKEN={tg_token}\\nTELEGRAM_CHAT_ID={tg_chat}\\n")
-            console.print("[green]✔ Credenciales de Telegram encriptadas/guardadas.[/green]\\n")
+            env_file.write_text(f"TELEGRAM_BOT_TOKEN={tg_token}\nTELEGRAM_CHAT_ID={tg_chat}\n")
+            console.print("[green]✔ Credenciales de Telegram encriptadas/guardadas.[/green]\n")
         else:
             env_file.touch()
     
@@ -373,7 +373,7 @@ def infra_wizard():
         opciones.append(questionary.Choice("💾 Respaldos Automatizados de BD", "backups", checked=(is_data or is_all)))
         
     if not opciones:
-        console.print("\\n[bold green]✅ Toda la Infraestructura Base ya está desplegada. Nada por hacer.[/bold green]")
+        console.print("\n[bold green]✅ Toda la Infraestructura Base ya está desplegada. Nada por hacer.[/bold green]")
         return
         
     respuestas = questionary.checkbox(
@@ -391,7 +391,7 @@ def infra_wizard():
     run_command(["docker", "network", "create", "boxops-network"])
     
     if "proxy" in respuestas:
-        email = typer.prompt("\\nIntroduce tu correo electrónico para Let's Encrypt (SSL del Proxy)")
+        email = typer.prompt("\nIntroduce tu correo electrónico para Let's Encrypt (SSL del Proxy)")
         setup_infra(proxy=True, email=email)
         
     if "obsv" in respuestas:
@@ -409,9 +409,9 @@ def infra_wizard():
     if "backups" in respuestas:
         setup_infra(backups=True)
         
-    console.print("\\n[bold green]✅ Configuración de infraestructura seleccionada finalizada exitosamente.[/bold green]")
+    console.print("\n[bold green]✅ Configuración de infraestructura seleccionada finalizada exitosamente.[/bold green]")
     from boxops.utils.telegram import send_telegram_alert
-    send_telegram_alert(f"🚀 <b>BoxOps Master</b>: Infraestructura base provisionada.\\nRol: {perfil}")
+    send_telegram_alert(f"🚀 <b>BoxOps Master</b>: Infraestructura base provisionada.\nRol: {perfil}")
 
 
 @app.command("down")

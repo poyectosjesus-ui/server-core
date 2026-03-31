@@ -23,11 +23,11 @@ def run_command(cmd_list, capture=True):
 
 def handle_help_command():
     msg = (
-        "🤖 <b>BoxOps ChatOps Daemon v1.0</b>\\n\\n"
-        "Comandos disponibles para controlar este servidor:\\n\\n"
-        "📊 <b>/status</b> - Muestra CPU/RAM del clúster Infraestructural.\\n"
-        "📦 <b>/apps</b> - Lista las Cargas de Trabajo lanzadas.\\n"
-        "💾 <b>/backup</b> - Fuerza un Dump lógico de la BD AHORA mismo.\\n"
+        "🤖 <b>BoxOps ChatOps Daemon v1.0</b>\n\n"
+        "Comandos disponibles para controlar este servidor:\n\n"
+        "📊 <b>/status</b> - Muestra CPU/RAM del clúster Infraestructural.\n"
+        "📦 <b>/apps</b> - Lista las Cargas de Trabajo lanzadas.\n"
+        "💾 <b>/backup</b> - Fuerza un Dump lógico de la BD AHORA mismo.\n"
         "❓ <b>/help</b> - Muestra este panel."
     )
     send_telegram_alert(msg)
@@ -40,15 +40,15 @@ def handle_status_command():
         send_telegram_alert("❌ Error consultando el Docker Daemon.")
         return
         
-    lines = out.strip().split("\\n")
-    report = "🔮 <b>Estado Global BoxOps</b>\\n\\n"
+    lines = out.strip().split("\n")
+    report = "🔮 <b>Estado Global BoxOps</b>\n\n"
     
     for line in lines:
         if "boxops-" in line:
             parts = line.split("|")
             if len(parts) >= 3:
                 name, cpu, mem = parts[0].replace("boxops-", ""), parts[1], parts[2]
-                report += f"🔹 <b>{name}</b>\\nCPU: {cpu} | RAM: {mem}\\n\\n"
+                report += f"🔹 <b>{name}</b>\nCPU: {cpu} | RAM: {mem}\n\n"
                 
     send_telegram_alert(report)
 
@@ -62,11 +62,11 @@ def handle_apps_command():
          send_telegram_alert("ℹ️  No hay apps activas.")
          return
          
-    report = "📦 <b>Workloads / Aplicaciones Vivas:</b>\\n\\n"
+    report = "📦 <b>Workloads / Aplicaciones Vivas:</b>\n\n"
     for app in apps:
         success, out = run_command(["docker", "ps", "-f", f"name=boxops-app-{app}", "--format", "{{.Status}}"])
         status = out.strip() if success and out.strip() else "Apagada"
-        report += f"🚀 <b>{app}</b> - <code>{status}</code>\\n"
+        report += f"🚀 <b>{app}</b> - <code>{status}</code>\n"
         
     send_telegram_alert(report)
 
@@ -80,7 +80,7 @@ def handle_backup_command():
     if success:
         send_telegram_alert("✅ <b>Backup Completado Exitosamente!</b> El archivo <code>.sql.gz</code> fue depositado localmente y en MinIO.")
     else:
-        send_telegram_alert(f"❌ <b>Falla Taller de Backups:</b>\\n<code>{escape_html(out)}</code>")
+        send_telegram_alert(f"❌ <b>Falla Taller de Backups:</b>\n<code>{escape_html(out)}</code>")
 
 
 def start_polling():
@@ -134,7 +134,7 @@ def start_polling():
         except requests.exceptions.Timeout:
              continue # Timeout esperado en long polling
         except KeyboardInterrupt:
-             print("\\n[*] Deteniendo BoxOps Telegram Daemon.")
+             print("\n[*] Deteniendo BoxOps Telegram Daemon.")
              break
         except Exception as e:
              print(f"[!] Error repentino en ciclo Daemon: {e}")
