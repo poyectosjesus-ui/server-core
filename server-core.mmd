@@ -1,0 +1,85 @@
+---
+
+
+title: Server Core - Arquitectura de Infraestructura
+config:
+  theme: base
+  themeVariables:
+    primaryColor: '#2563eb'
+    primaryTextColor: '#ffffff'
+    primaryBorderColor: '#1e40af'
+    lineColor: '#64748b'
+    secondaryColor: '#8b5cf6'
+    tertiaryColor: '#10b981'
+    background: '#0f172a'
+    mainBkg: '#1e293b'
+    secondBkg: '#334155'
+    edgeLabelBackground: '#475569'
+    textColor: '#e2e8f0'
+    nodeBorder: '#64748b'
+    clusterBkg: '#1e293b'
+    clusterBorder: '#475569'
+---
+graph TB
+
+    User(["🌐 Usuario en Internet"])
+    DNS(["☁️ DNS / WAF<br/>Cloudflare"])
+    
+    subgraph Security["🔒 Capa de Seguridad del Host"]
+        UFW(["🛡️ Firewall UFW"])
+        Fail2ban(["🚫 Fail2ban<br/>Mitigación Fuerza Bruta"])
+    end
+    
+    subgraph Docker["🐳 Capa de Orquestación Docker"]
+        ReverseProxy(["🔄 Reverse Proxy<br/>Traefik / Nginx Proxy Manager"])
+        CertManager(["🔐 Gestor de Certificados SSL"])
+    end
+    
+    subgraph Workloads["📦 Capa de Cargas de Trabajo"]
+        Containers(["⚙️ Contenedores de Aplicaciones<br/>APIs / Frontends / Microservicios"])
+    end
+    
+    subgraph Data["💾 Capa de Datos Global"]
+        Database[("🗄️ Base de Datos SQL<br/>PostgreSQL / MySQL")]
+        Cache[("⚡ Caché / NoSQL<br/>Redis / MongoDB")]
+    end
+    
+    subgraph Observability["📊 Capa de Observabilidad"]
+        Prometheus(["📈 Prometheus<br/>Recolector de Métricas"])
+        Grafana(["📉 Grafana<br/>Dashboards y Alertas"])
+    end
+    
+    Admin(["👨‍💻 CLI / Motor de Provisión<br/>Administrador"])
+    
+    User -->|"🌍 Internet"| DNS
+    DNS -->|"✅ Resuelve y Filtra"| UFW
+    UFW -->|"🔍 Analiza"| Fail2ban
+    Fail2ban -->|"✓ Tráfico Permitido"| ReverseProxy
+    ReverseProxy -.->|"🔒 Certifica"| CertManager
+    ReverseProxy ==>|"🎯 Enruta"| Containers
+    Containers -->|"📝 Lee/Escribe"| Database
+    Containers -->|"💨 Cachea"| Cache
+    Prometheus -.->|"📊 Extrae Métricas"| Containers
+    Prometheus -.->|"📊 Extrae Métricas"| ReverseProxy
+    Prometheus -.->|"📊 Extrae Métricas"| Database
+    Prometheus -.->|"📊 Extrae Métricas"| Cache
+    Grafana ==>|"👁️ Visualiza"| Prometheus
+    Admin ==>|"⚙️ Configura y Despliega"| Docker
+    Admin ==>|"🔧 Gestiona"| Security
+    Admin ==>|"📡 Monitorea"| Observability
+    
+    classDef external fill:#3b82f6,stroke:#60a5fa,stroke-width:3px,color:#fff,rx:15,ry:15
+    classDef security fill:#dc2626,stroke:#f87171,stroke-width:3px,color:#fff,rx:15,ry:15
+    classDef proxy fill:#f59e0b,stroke:#fbbf24,stroke-width:3px,color:#000,rx:15,ry:15
+    classDef workload fill:#8b5cf6,stroke:#a78bfa,stroke-width:3px,color:#fff,rx:15,ry:15
+    classDef database fill:#10b981,stroke:#34d399,stroke-width:3px,color:#fff,rx:15,ry:15
+    classDef observability fill:#ec4899,stroke:#f472b6,stroke-width:3px,color:#fff,rx:15,ry:15
+    classDef admin fill:#64748b,stroke:#94a3b8,stroke-width:3px,color:#fff,rx:15,ry:15
+    
+    class User,DNS external
+    class UFW,Fail2ban security
+    class ReverseProxy,CertManager proxy
+    class Containers workload
+    class Database,Cache database
+    class Prometheus,Grafana observability
+    class Admin admin
