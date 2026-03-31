@@ -1,41 +1,46 @@
-# 📦 BoxOps CLI
+# 📦 BoxOps CLI (PaaS Edition)
 
-![Version](https://img.shields.io/badge/version-1.0.0--mvp-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0.0--beta-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Deployments](https://img.shields.io/badge/deployments-Traefik--S3-orange.svg)
 
-BoxOps es una herramienta CLI premium construida en Python (`Typer` + `Rich`) diseñada exclusivamente para simplificar y automatizar el aprovisionamiento, la seguridad y la gestión de servidores Linux de grado producción.
+**BoxOps** ha evolucionado de un simple script bash a una **Plataforma como Servicio (PaaS) privada y CLI de grado Enterprise**. Su objetivo es permitir a administradores DevOps y desarrolladores orquestar infraestructura compleja y publicar aplicaciones (Workloads) en segundos con Arquitectura Cliente-Servidor (Zero-Downtime y SSL Dinámico).
 
-## 🚀 Características (Roadmap del Proyecto)
-- **Instalación Cero-Fricción (Bootstrap):** Un comando para convertir una máquina Ubuntu/Debian "virgen" en un servidor de despliegues.
-- **Proxy Inverso Dinámico:** Despliegue automático de Traefik y gestión inteligente de certificados SSL.
-- **Monitoreo Avanzado:** Stack completo con Prometheus, Grafana, Node Exporter y cAdvisor.
-- **Seguridad Activa:** Configuración inteligente de Firewalls (UFW), Fail2ban y alertas directas vía Telegram.
-- **Gestión de Entornos:** Montaje y desmontaje seguro de contenedores genéricos preconfigurados.
-- **Gestor de Respaldos:** Lógicas seguras para crear snapshots (tar.gz) locales de volúmenes de Docker y envíos remotos.
+## 🚀 La Magia del Cliente-Servidor
 
-## 💿 Probando el MVP (Fase 1)
-Clona el proyecto o sube los archivos a tu servidor Debian/Ubuntu con permisos root y ejecuta:
+BoxOps funciona tanto en el **Servidor (Infraestructura)** como en la **Máquina Local del DevOps (Cliente)**:
 
+1. **En tu Servidor:** Construye clústeres de Traefik, Prometheus, Grafana, MinIO (S3), Redis y PostgreSQL usando asistentes interactivos en Python.
+2. **En tu Laptop:** Abres cualquier proyecto (API, Frontend, Node, Python, etc.), escribes `boxops push` y el código vuela vía SSH, inyectándose automáticamente en el proxy de tu servidor con un certificado Let's Encrypt vigente.
+
+## 🛠️ Instalación Rápida
+
+### 1. En el Servidor (Host)
+Inicia sesión vía SSH en tu servidor Debian/Ubuntu y ejecuta:
 ```bash
+git clone https://github.com/tu-usuario/server-core.git
+cd server-core
 chmod +x install.sh
-./install.sh
+sudo ./install.sh
 ```
+Usa el **Asistente (Opción 1)** para aprovisionar el servidor e instalar toda la infraestructura global en Docker.
 
-El script maestro se encargará de:
-1. Instalar Python 3 y `venv`.
-2. Instalar Docker, Docker Compose y herramientas básicas de SO.
-3. Crear un enlace global para el CLI `boxops`.
-
-Prueba tu instalación desde cualquier ruta en el servidor:
+### 2. En tu Máquina Local (MacOS / Windows / Linux)
+Clona este mismo repositorio en tu computadora de uso diario, y usa Python para instalar la CLI globalmente:
 ```bash
-boxops --help
+git clone https://github.com/tu-usuario/server-core.git
+cd server-core
+pip install -e .
+```
+Conecta tu CLI local al servidor que acabas de instalar:
+```bash
+boxops remote add IP_DE_TU_SERVIDOR
 ```
 
-## 🛠️ Arquitectura
-- **Núcleo CLI:** Python con las librerías `Typer` (Google CLI) y `Rich` (Formatos UI).
-- **Módulos:** BoxOps está estructurado bajo `boxops/modules/`, lo cual permite escalar comandos de forma vertical.
-- **Agentes IA:** El desarrollo del código subyacente está guiado por perfiles de Agentes Inteligentes delimitados (DevOps, SRE, CLI Architect).
+## 🏗️ Guía de Uso
+Para ver el flujo de trabajo completo, creación de bases de datos aisladas e interacción remota, por favor dirígete a:
+- 📖 [MANUAL_CLI.md](./MANUAL_CLI.md) (Todos los comandos explicados)
+- 👨‍💻 [GUIA_DESARROLLO_BOXOPS.md](./GUIA_DESARROLLO_BOXOPS.md) (Reglas de Arquitectura para el equipo dev)
 
 ## 📜 Licencia
 Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.

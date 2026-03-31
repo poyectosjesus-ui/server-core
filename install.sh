@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# BoxOps - Server Management Bootstrap Script (v1.0.0 MVP)
+# BoxOps - Server Management Bootstrap Script (v1.1.0 Provisioning MVP)
 set -e
 
 # ==========================================
@@ -32,7 +32,7 @@ print_banner() {
     echo " |____/ \\___/_/\\_\\\\___/| .__/|___/ "
     echo "                       | |           "
     echo "                       |_|           "
-    echo -e "${CYAN} --- DevOps Provisioning MVP v1.0.0 ---${NC}"
+    echo -e "${CYAN} --- DevOps Provisioning MVP v1.1.0 ---${NC}"
     echo ""
 }
 
@@ -45,39 +45,116 @@ REPO_DIR=$(pwd)
 # ==========================================
 # Core Functions
 # ==========================================
-install_boxops() {
+
+provision_server() {
     print_banner
-    print_info "Iniciando instalación de dependencias..."
+    print_info "Iniciando aprovisionamiento del servidor base..."
     
     if command -v apt-get &> /dev/null; then
-        sudo apt-get update -y
-        sudo apt-get install -y python3 python3-pip python3-venv curl git ufw fail2ban
+        print_info "Actualizando repositorios y Sistema Operativo..."
+        sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
+        sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+        
+        print_info "Instalando dependencias base y seguridad (ufw, fail2ban)..."
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y curl git ufw fail2ban python3 python3-pip python3-venv apt-transport-https ca-certificates software-properties-common
+        
         if ! command -v docker &> /dev/null; then
-            print_info "Instalando Docker..."
+            print_info "Instalando Docker Engine y Docker Compose..."
             curl -fsSL https://get.docker.com -o get-docker.sh
             sudo sh get-docker.sh
             sudo usermod -aG docker $USER
             rm -f get-docker.sh
+        else
+            print_success "Docker ya está instalado."
         fi
+        
+        print_info "Configurando Firewall (UFW)..."
+        sudo ufw default deny incoming
+        sudo ufw default allow outgoing
+        sudo ufw allow ssh
+        sudo ufw allow http
+        sudo ufw allow https
+        # Habilitar UFW (requiere 'yes' en caso de que pregunte si desconectará SSH)
+        sudo ufw --force enable || true
+
+        print_success "Aprovisionamiento del servidor completado con éxito."
     else
         print_warning "apt-get no detectado (probablemente estás en macOS o RedHat)."
-        print_warning "Solo se configurará el entorno Python local."
+        print_warning "El aprovisionamiento de SO está diseñado para Debian/Ubuntu."
         sleep 2
     fi
+    echo ""
+    read -p "Presiona ENTER para continuar..."
+}
 
-    print_info "Preparando directorio $INSTALL_DIR..."
+install_boxops() {
+    print_banner
+    print_info "Preparando CLI de BoxOps en $INSTALL_DIR..."
+    
+    if ! command -v python3 &> /dev/null; then
+        print_error "Python3 no está instalado. Por favor ejecuta 'Aprovisionar Servidor Base' primero."
+        read -p "Presiona ENTER para continuar..."
+        return
+    fi
+
     sudo mkdir -p $INSTALL_DIR
     sudo chown -R $USER:$USER $INSTALL_DIR
     cp -r "$REPO_DIR"/* $INSTALL_DIR/ || true
 
-    print_info "Configurando entorno de Python..."
+    print_info "Configurando entorno de Python virtual..."
     cd $INSTALL_DIR
     python3 -m venv venv
     source venv/bin/activate
     pip install -e .
     sudo ln -sf $INSTALL_DIR/venv/bin/boxops /usr/local/bin/boxops
 
-    print_success "¡BoxOps instalado exitosamente en $INSTALL_DIR y disponible globalmente como 'boxops'!"
+    print_success "¡CLI de BoxOps instalada exitosamente!"
+    print_success "Disponible globalmente como el comando 'boxops'."
+    echo ""
+    read -p "Presiona ENTER para continuar..."
+}
+
+verify_status() {
+    print_banner
+    print_info "Verificando estado de las dependencias base..."
+    echo ""
+    
+    # Función auxiliar para comprobar estado con systemd
+    check_service() {
+        if systemctl is-active --quiet "$1"; then
+            echo -e "${GREEN}✅ $1 está ACTIVO y ejecutándose.${NC}"
+        else
+            echo -e "${RED}❌ $1 NO ESTÁ ACTIVO.${NC}"
+        fi
+    }
+
+    echo -e "${BOLD}--- Estado de Servicios (Systemd) ---${NC}"
+    if command -v systemctl &> /dev/null; then
+        check_service "docker"
+        check_service "ufw"
+        check_service "fail2ban"
+    else
+        print_warning "systemctl no disponible (entorno no-Linux o macOS)."
+    fi
+
+    echo ""
+    echo -e "${BOLD}--- Estado de Binarios ---${NC}"
+    
+    check_bin() {
+        if command -v "$1" &> /dev/null; then
+            echo -e "${GREEN}✅ $1 existe en: $(which $1)${NC}"
+        else
+            echo -e "${RED}❌ $1 NO encontrado.${NC}"
+        fi
+    }
+
+    check_bin "docker"
+    check_bin "ufw"
+    check_bin "fail2ban-server"
+    check_bin "python3"
+    check_bin "git"
+    check_bin "boxops"
+
     echo ""
     read -p "Presiona ENTER para continuar..."
 }
@@ -107,16 +184,51 @@ update_boxops() {
     read -p "Presiona ENTER para continuar..."
 }
 
+master_setup_wizard() {
+    print_banner
+    print_info "=========================================================="
+    print_info "🚀 INICIANDO ASISTENTE MAESTRO DE BOXOPS SETUP 🚀"
+    print_info "=========================================================="
+    echo ""
+    
+    # 1. OS Provisioning & Security
+    print_info "Paso 1/3: Preparando el Sistema Operativo y Seguridad..."
+    if command -v docker &> /dev/null && command -v ufw &> /dev/null; then
+        print_success "El SO base y utilidades principales ya están instalados."
+    else
+        provision_server
+    fi
+    
+    # 2. BoxOps CLI Install
+    echo ""
+    print_info "Paso 2/3: Instalando / Actualizando BoxOps CLI..."
+    install_boxops
+    
+    # 3. Infrastructure Launch via Python
+    echo ""
+    print_info "Paso 3/3: Despliegue de Infraestructura Core..."
+    if command -v boxops &> /dev/null; then
+        sudo /usr/local/bin/boxops infra wizard
+    else
+        print_error "La CLI de BoxOps falló en instalarse. No podemos ejecutar el Wizard de Infraestructura."
+    fi
+    
+    echo ""
+    print_success "Asistente Maestro finalizado correctamente."
+    read -p "Presiona ENTER para volver al menú principal..."
+}
+
 uninstall_boxops() {
     print_banner
-    print_warning "Estás a punto de desinstalar BoxOps por completo."
+    print_warning "Estás a punto de desinstalar la CLI local BoxOps."
+    print_warning "NOTA: Esto no desinstalará Docker, UFW ni Fail2ban."
     read -p "¿Estás seguro? (s/n): " confirm
     if [[ "$confirm" == "s" || "$confirm" == "S" ]]; then
         print_info "Eliminando directorio $INSTALL_DIR..."
         sudo rm -rf $INSTALL_DIR
         print_info "Eliminando ejecutable..."
         sudo rm -f /usr/local/bin/boxops
-        print_success "Desinstalación completada."
+        print_success "Desinstalación de la CLI completada."
     else
         print_info "Operación cancelada."
     fi
@@ -129,18 +241,20 @@ uninstall_boxops() {
 while true; do
     print_banner
     echo -e "${BOLD}Opciones Disponibles:${NC}"
-    echo "  1) 🚀 Instalar / Refrescar BoxOps"
-    echo "  2) 🔄 Actualizar Código (Git Pull)"
-    echo "  3) 🗑️  Desinstalar BoxOps"
-    echo "  4) 👋 Salir"
+    echo "  1) 🚀 BoxOps Setup Wizard (Instalar OS, CLI, Docker y Configurar todo)"
+    echo "  2) 📊 BoxOps Status & Monitoring (Comprobar estado local)"
+    echo "  3) 🔄 Actualizar Código BoxOps (Git Pull)"
+    echo "  4) 🗑️  Desinstalar BoxOps"
+    echo "  5) 👋 Salir"
     echo ""
-    read -p "Selecciona una opción [1-4]: " option
+    read -p "Selecciona una opción [1-5]: " option
 
     case $option in
-        1) install_boxops ;;
-        2) update_boxops ;;
-        3) uninstall_boxops ;;
-        4) 
+        1) master_setup_wizard ;;
+        2) verify_status ;;
+        3) update_boxops ;;
+        4) uninstall_boxops ;;
+        5) 
             print_success "¡Hasta pronto!"
             exit 0
             ;;
