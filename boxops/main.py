@@ -1,6 +1,6 @@
 import typer
 from rich.console import Console
-from .modules import init_module, infra_module, app_module, db_module, remote_module
+from .modules import init_module, infra_module, app_module, db_module, remote_module, daemon_module
 
 app = typer.Typer(
     name="boxops",
@@ -15,6 +15,7 @@ app.add_typer(infra_module.app, name="infra", help="Gestiona Traefik y Monitoreo
 app.add_typer(db_module.app, name="db", help="Gestión de Bases de Datos (Dedicadas / Lógicas aisladas).")
 app.add_typer(app_module.app, name="app", help="Gestiona instalación y bajada de contenedores genéricos.")
 app.add_typer(remote_module.app, name="remote", help="Gestiona conexiones y despliegues remotos.")
+app.add_typer(daemon_module.app, name="daemon", help="Inicia/Detiene el vigilante de Telegram ChatOps.")
 
 from .modules.app_module import push_app
 app.command("push", help="[Remoto] Sube el proyecto actual al servidor configurado")(push_app)
