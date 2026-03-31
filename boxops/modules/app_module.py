@@ -249,6 +249,20 @@ def remote_setup(app_name: str = typer.Argument(...)):
     global_nets["boxops-network"] = {"external": True}
     compose_data["networks"] = global_nets
     
+    # 4. Phase 10: Inyección DevSecOps (Anti-Miner Throttling)
+    # Protege al servidor limitando recursos en caso de un ataque (ej. RCE en un Frontend)
+    for sn, s_data in services.items():
+        if "deploy" not in s_data:
+            s_data["deploy"] = {}
+        if "resources" not in s_data["deploy"]:
+            s_data["deploy"]["resources"] = {}
+        if "limits" not in s_data["deploy"]["resources"]:
+            s_data["deploy"]["resources"]["limits"] = {
+                "cpus": "0.8",
+                "memory": "768M"
+            }
+            console.print(f"[yellow]🛡️ Shield: Límite Anti-Miner activado para '{sn}' (0.8 CPUs / 768M RAM)[/yellow]")
+            
     with open(compose_path, "w") as f:
         yaml.dump(compose_data, f, default_flow_style=False, sort_keys=False)
         
