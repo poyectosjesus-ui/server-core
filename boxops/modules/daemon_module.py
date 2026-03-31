@@ -82,16 +82,37 @@ def logs_daemon():
 @app.command("config")
 def config_daemon():
     """Reconfigura interactivamente las credenciales de Telegram para el Daemon."""
-    from boxops.modules.infra_module import set_env_var
-    
     console.print("[bold yellow]Reconfiguración Manual de ChatOps (Telegram)[/bold yellow]")
     
     token = typer.prompt("Introduce el nuevo Bot Token (entregado por BotFather)")
     chat_id = typer.prompt("Introduce el Telegram Chat ID (número negativo para grupos)")
     
-    env_path = "/opt/boxops/infra/.env"
-    set_env_var(env_path, "TELEGRAM_BOT_TOKEN", token)
-    set_env_var(env_path, "TELEGRAM_CHAT_ID", chat_id)
+    env_path = Path("/opt/boxops/infra/.env")
+    env_content = ""
+    if env_path.exists():
+        env_content = env_path.read_text()
+        
+    lines = env_content.split("\\n")
+    new_lines = []
+    found_token, found_chat = False, False
+    
+    for line in lines:
+        if line.startswith("TELEGRAM_BOT_TOKEN="):
+            new_lines.append(f"TELEGRAM_BOT_TOKEN={token}")
+            found_token = True
+        elif line.startswith("TELEGRAM_CHAT_ID="):
+            new_lines.append(f"TELEGRAM_CHAT_ID={chat_id}")
+            found_chat = True
+        elif line.strip():
+            new_lines.append(line)
+            
+    if not found_token:
+        new_lines.append(f"TELEGRAM_BOT_TOKEN={token}")
+    if not found_chat:
+        new_lines.append(f"TELEGRAM_CHAT_ID={chat_id}")
+        
+    env_path.parent.mkdir(parents=True, exist_ok=True)
+    env_path.write_text("\\n".join(new_lines) + "\\n")
     
     console.print(f"[bold green]✔ Credenciales de Telegram inyectadas en {env_path}[/bold green]")
     console.print("Recuerda ejecutar 'boxops daemon stop' y 'boxops daemon start' para que el vigilante adopte los nuevos tokens.")
