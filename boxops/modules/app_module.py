@@ -68,6 +68,8 @@ networks:
     if success:
         console.print(f"[bold green]✔ Aplicación '{app_name}' en línea.[/bold green]")
         console.print(f"🌍 Disponible (con SSL automático) en: [bold underline]https://{app_domain}[/bold underline]")
+        from boxops.utils.telegram import send_telegram_alert
+        send_telegram_alert(f"🚢 <b>Deploy Local</b>: Workload <code>{app_name}</code> desplegado exitosamente en <b>{app_domain}</b>.")
     else:
         console.print(f"[bold red]❌ Hubo un error levantando el contenedor '{app_name}'.[/bold red]")
 
@@ -257,5 +259,7 @@ def remote_setup(app_name: str = typer.Argument(...)):
     if success:
         console.print(f"[bold green]✔ Aplicación '{app_name}' desplegada masivamente en el Servidor.[/bold green]")
         console.print(f"🌍 Disponible (con SSL automático) en: [bold underline]https://{app_domain}[/bold underline]")
+        from boxops.utils.telegram import send_telegram_alert
+        send_telegram_alert(f"🚢 <b>Push Remoto Exitoso</b>: El Workload <code>{app_name}</code> se transpiló y desplegó en <b>{app_domain}</b> vía rsync.")
     else:
         console.print(f"[bold red]❌ Hubo un error levantando los contenedores de '{app_name}'. Verifica con 'docker compose logs'[/bold red]")

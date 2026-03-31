@@ -170,8 +170,10 @@ def db_wizard():
     else:
         conn_str = f"{engine}://{db_user}:<LA_CONTRASEÑA_EXISTENTE>@{host}:{port}/{db_name}"
         console.print(Panel(f"[bold white]{conn_str}[/bold white]", title="Connection URL", border_style="green"))
-        
     console.print("[dim]Nota: Si la aplicación corre en 'boxops-network', reemplaza '127.0.0.1' por el nombre del contenedor host ('{host}').[/dim]\n")
+    
+    from boxops.utils.telegram import send_telegram_alert
+    send_telegram_alert(f"🗄️ <b>DB Aprovisionada</b>: Base de datos lógica <code>{db_name}</code> creada en host {host}.")
 
 
 @app.command("create-instance")
@@ -249,5 +251,7 @@ volumes:
     success, _ = run_command(["docker", "compose", "up", "-d"], cwd=instance_dir)
     if success:
         console.print(f"[bold green]✔ Instancia dedicada '{name}' lista en el puerto local {port}.[/bold green]")
+        from boxops.utils.telegram import send_telegram_alert
+        send_telegram_alert(f"🗄️ <b>Instancia Dedicada Lanzada</b>: El motor {type} (<code>{name}</code>) está corriendo aislado en el servidor.")
     else:
         console.print(f"[red]❌ Error originado en docker daemon levantando instancia {name}.[/red]")

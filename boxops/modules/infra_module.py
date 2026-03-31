@@ -410,6 +410,8 @@ def infra_wizard():
         setup_infra(backups=True)
         
     console.print("\\n[bold green]✅ Configuración de infraestructura seleccionada finalizada exitosamente.[/bold green]")
+    from boxops.utils.telegram import send_telegram_alert
+    send_telegram_alert(f"🚀 <b>BoxOps Master</b>: Infraestructura base provisionada.\\nRol: {perfil}")
 
 
 @app.command("down")
