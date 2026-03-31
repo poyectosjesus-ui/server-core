@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: boxops-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - boxops-network
+
+networks:
+  boxops-network:
+    external: true
+volumes:
+  redis-data:

@@ -316,6 +316,23 @@ def infra_wizard():
     for comp in ["proxy", "observability", "database", "cache", "minio", "backups"]:
         estados[comp] = (INFRA_DIR / comp / "docker-compose.yml").exists()
 
+    # === Topología de Servidor (Server Profile) ===
+    perfil = questionary.select(
+        "¿Cuál será el Rol / Topología de este servidor en tu red?",
+        choices=[
+            "All-in-One (Instala TODO: Proxy, BD, Caché, Infra)",
+            "Web / Compute Node (Ideal Frontend/API: Solo Proxy y Monitoreo)",
+            "Data Node (Ideal Backend: Solo DBs, Redis, Storage - SIN Proxy Web)"
+        ]
+    ).ask()
+    
+    if not perfil:
+        return
+        
+    is_compute = "Compute Node" in perfil
+    is_data = "Data Node" in perfil
+    is_all = "All-in-One" in perfil
+
     # === Questionary Muli-Select ===
     opciones = []
     
@@ -323,37 +340,37 @@ def infra_wizard():
     if estados["proxy"]:
         console.print("[yellow]ℹ️  Reverse Proxy (Traefik) ya está configurado.[/yellow]")
     else:
-        opciones.append(questionary.Choice("🌐 Reverse Proxy SSL Traefik v3 (Súper Recomendado)", "proxy", checked=True))
+        opciones.append(questionary.Choice("🌐 Reverse Proxy SSL Traefik v3", "proxy", checked=(is_compute or is_all)))
         
     # Observabilidad
     if estados["observability"]:
         console.print("[yellow]ℹ️  Observabilidad (Prometheus+Grafana) ya está configurada.[/yellow]")
     else:
-        opciones.append(questionary.Choice("📈 Observabilidad Prometheus & Grafana (Recomendado)", "obsv", checked=True))
+        opciones.append(questionary.Choice("📈 Observabilidad Prometheus & Grafana", "obsv", checked=(is_compute or is_all)))
         
     # Database
     if estados["database"]:
         console.print("[yellow]ℹ️  Base de Datos Global SQL ya está configurada.[/yellow]")
     else:
-        opciones.append(questionary.Choice("🗄️ Base de Datos Global PostgreSQL (Recomendado)", "db", checked=True))
+        opciones.append(questionary.Choice("🗄️ Base de Datos Global PostgreSQL", "db", checked=(is_data or is_all)))
         
     # Caché
     if estados["cache"]:
         console.print("[yellow]ℹ️  Caché Redis ya está configurada.[/yellow]")
     else:
-        opciones.append(questionary.Choice("⚡ Caché Local Redis (Recomendado)", "cache", checked=True))
+        opciones.append(questionary.Choice("⚡ Caché Local Redis", "cache", checked=(is_data or is_all)))
         
     # MinIO
     if estados["minio"]:
         console.print("[yellow]ℹ️  Almacenamiento Object Storage MinIO ya está configurado.[/yellow]")
     else:
-        opciones.append(questionary.Choice("📦 Object Storage S3 MinIO (Opcional Avanzado)", "minio", checked=False))
+        opciones.append(questionary.Choice("📦 Object Storage S3 MinIO", "minio", checked=(is_data or is_all)))
         
     # Backups
     if estados["backups"]:
         console.print("[yellow]ℹ️  Backups de BD ya están configurados.[/yellow]")
     else:
-        opciones.append(questionary.Choice("💾 Respaldos Automatizados de BD (Opcional Avanzado)", "backups", checked=False))
+        opciones.append(questionary.Choice("💾 Respaldos Automatizados de BD", "backups", checked=(is_data or is_all)))
         
     if not opciones:
         console.print("\\n[bold green]✅ Toda la Infraestructura Base ya está desplegada. Nada por hacer.[/bold green]")

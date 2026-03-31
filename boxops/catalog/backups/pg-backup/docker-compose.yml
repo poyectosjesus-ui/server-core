@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  pg-backup:
+    image: prodrigestivill/postgres-backup-local
+    container_name: boxops-db-backup
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: boxops-postgres
+      POSTGRES_DB: globaldb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: {{DB_PASS}}
+      POSTGRES_EXTRA_OPTS: '-Z6 --schema-only'
+      SCHEDULE: '@daily'
+      BACKUP_KEEP_DAYS: 7
+    volumes:
+      - ./backup-files:/backups
+    networks:
+      - boxops-network
+
+networks:
+  boxops-network:
+    external: true
