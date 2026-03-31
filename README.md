@@ -10,8 +10,10 @@
 
 BoxOps funciona tanto en el **Servidor (Infraestructura)** como en la **Máquina Local del DevOps (Cliente)**:
 
-1. **En tu Servidor:** Construye clústeres de Traefik, Prometheus, Grafana, MinIO (S3), Redis y PostgreSQL usando asistentes interactivos en Python.
+1. **En tu Servidor:** Construye clústeres de Traefik, Prometheus, Grafana, MinIO (S3), Redis y PostgreSQL usando asistentes interactivos en Python. (Soporta arquitecturas de Nodo de Cómputo y Nodos de Base de Datos).
 2. **En tu Laptop:** Abres cualquier proyecto (API, Frontend, Node, Python, etc.), escribes `boxops push` y el código vuela vía SSH, inyectándose automáticamente en el proxy de tu servidor con un certificado Let's Encrypt vigente.
+3. **Telemetría y Salud (`boxops status`):** Revisa el pulso físico de Docker (CPU/RAM) y el estatus de los Respaldos con visuales interactivos cortesía de `Rich`.
+4. **ChatOps en Curso (`boxops daemon start`):** Controla asíncronamente BoxOps enviando comandos por chat como `/status` o `/backup` desde Telegram.
 
 ## 🛠️ Instalación Rápida
 
