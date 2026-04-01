@@ -95,5 +95,49 @@ def version():
     console.print(f"[bold bright_blue]BoxOps CLI[/bold bright_blue] version {__version__}")
     console.print("Construido para administración MVP ✨")
 
+
+@app.command("update")
+def update_cli():
+    """Descarga la última versión de BoxOps desde GitHub y recompila el motor."""
+    import subprocess
+    from pathlib import Path
+    
+    install_dir = Path("/opt/boxops")
+    if not install_dir.exists() or not (install_dir / ".git").exists():
+        console.print("[red]❌ La CLI no fue instalada vía clonación Git en /opt/boxops. No se puede auto-actualizar.[/red]")
+        return
+        
+    console.print("[bold cyan]>> Sincronizando repositorios desde GitHub (main)...[/bold cyan]")
+    try:
+        subprocess.run(["git", "pull", "origin", "main"], cwd=install_dir, check=True)
+        console.print("[bold cyan]>> Recompilando dependencias de Python (pip)...[/bold cyan]")
+        subprocess.run(["/opt/boxops/venv/bin/pip", "install", "-e", "."], cwd=install_dir, check=True)
+        console.print("[bold green]✔ BoxOps ha sido sincronizado a la última versión arquitectónica Exitosamente.[/bold green]")
+    except Exception as e:
+        console.print(f"[bold red]❌ Error de Sincronización GitHub:[/bold red] {e}")
+
+
+@app.command("uninstall")
+def uninstall_cli():
+    """Elimina agresivamente el código fuente y ejecutables de BoxOps de esta máquina."""
+    import subprocess
+    import typer
+    
+    console.print("[bold red]⚠️  ¡ADVERTENCIA DE AUTODESTRUCCIÓN! ⚠️[/bold red]")
+    console.print("Esto borrará todo el código base de `/opt/boxops/` y desligará el binario `boxops`.")
+    console.print("Tus contenedores Docker y datos creados seguirán operando, pero perderás acceso a la CLI para gestionarlos.\n")
+    
+    if typer.confirm("¿Estás absolutamente seguro de erradicar a BoxOps de este servidor?", default=False):
+        console.print("[dim]>> Purgando Binarios SysAdmin...[/dim]")
+        subprocess.run(["sudo", "rm", "-f", "/usr/local/bin/boxops"])
+        console.print("[dim]>> Quemando repositorios fuente...[/dim]")
+        subprocess.run(["sudo", "rm", "-rf", "/opt/boxops/"])
+        console.print("[bold green]✔ Desinstalación Completada. Ha sido un honor servirte.[/bold green]")
+
+
+from .modules.daemon_module import config_daemon
+app.command("botconfig", help="Acceso directo rápido a re-configurar Tokens de Telegram")(config_daemon)
+
+
 if __name__ == "__main__":
     app()
