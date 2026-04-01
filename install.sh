@@ -24,15 +24,19 @@ print_error() { echo -e "${RED}❌ ${1}${NC}"; }
 print_banner() {
     clear
     echo -e "${BLUE}${BOLD}"
-    echo "  ____               ___             "
-    echo " |  _ \\             / _ \\            "
-    echo " | |_) | _____  ___| | | |_ __  ___  "
-    echo " |  _ < / _ \\ \\/ / | | | | '_ \\/ __| "
-    echo " | |_) | (_) >  <| |_| | |_) \\__ \\ "
-    echo " |____/ \\___/_/\\_\\\\___/| .__/|___/ "
-    echo "                       | |           "
-    echo "                       |_|           "
-    echo -e "${CYAN} --- DevOps Provisioning MVP v1.1.0 ---${NC}"
+    echo " ╭───────────────────────────────────────────────╮"
+    echo " │                                               │"
+    echo " │     ____               ___                    │"
+    echo " │    |  _ \\             / _ \\                   │"
+    echo " │    | |_) | _____  ___| | | |_ __  ___         │"
+    echo " │    |  _ < / _ \\ \\/ / | | | | '_ \\/ __|        │"
+    echo " │    | |_) | (_) >  <| |_| | |_) \\__ \\        │"
+    echo " │    |____/ \\___/_/\\_\\\\___/| .__/|___/        │"
+    echo " │                          | |                  │"
+    echo " │                          |_|                  │"
+    echo " │                                               │"
+    echo " │    ${CYAN}--- DevOps Provisioning MVP v1.0.1 --${BLUE}    │"
+    echo " ╰───────────────────────────────────────────────╯${NC}"
     echo ""
 }
 
@@ -98,8 +102,16 @@ install_boxops() {
     fi
 
     sudo mkdir -p $INSTALL_DIR
-    sudo chown -R $USER:$USER $INSTALL_DIR
-    cp -r "$REPO_DIR"/* $INSTALL_DIR/ || true
+    sudo chown -R $USER:$user $INSTALL_DIR
+    
+    if [ ! -f "$REPO_DIR/boxops/main.py" ]; then
+        print_info "Dependencias Locales no encontradas. Descargando BoxOps Edge desde GitHub..."
+        sudo git clone https://github.com/poyectosjesus-ui/server-core.git /tmp/boxops-clone
+        sudo cp -r /tmp/boxops-clone/* $INSTALL_DIR/
+        sudo rm -rf /tmp/boxops-clone
+    else
+        sudo cp -r "$REPO_DIR"/* $INSTALL_DIR/ || true
+    fi
 
     print_info "Configurando entorno de Python virtual..."
     cd $INSTALL_DIR
@@ -111,7 +123,10 @@ install_boxops() {
     print_success "¡CLI de BoxOps instalada exitosamente!"
     print_success "Disponible globalmente como el comando 'boxops'."
     echo ""
-    read -p "Presiona ENTER para continuar..."
+    
+    if [ -t 0 ]; then
+        read -p "Presiona ENTER para continuar..."
+    fi
 }
 
 verify_status() {
@@ -236,18 +251,50 @@ uninstall_boxops() {
 }
 
 # ==========================================
-# Main Menu Loop
+# Main Executable Logic
 # ==========================================
+
+# If not running in a TTY (e.g. piped from curl), bypass menu and run sequential setup natively:
+if [ ! -t 0 ]; then
+    print_banner
+    print_info "Detectada instalación no interactiva (Piped vía Curl)."
+    
+    # 1. Instalar OS Dependencies Auto
+    sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y curl git ufw fail2ban python3 python3-pip python3-venv apt-transport-https ca-certificates software-properties-common
+    
+    if ! command -v docker &> /dev/null; then
+        curl -fsSL https://get.docker.com -o get-docker.sh
+        sudo sh get-docker.sh
+        sudo usermod -aG docker $USER
+        rm -f get-docker.sh
+    fi
+    
+    # 2. Download and Link BoxOps
+    install_boxops
+    
+    echo ""
+    print_success "¡Instalación base completada automáticamente!"
+    print_info "NOTA: Para configurar la Infraestructura interactiva, ejecuta ahora mismo en tu consola:"
+    echo -e "${YELLOW}>> sudo boxops infra wizard${NC}"
+    echo ""
+    exit 0
+fi
+
+# Standard Interactive Menu Fallback
 while true; do
     print_banner
-    echo -e "${BOLD}Opciones Disponibles:${NC}"
-    echo "  1) 🚀 BoxOps Setup Wizard (Instalar OS, CLI, Docker y Configurar todo)"
-    echo "  2) 📊 BoxOps Status & Monitoring (Comprobar estado local)"
-    echo "  3) 🔄 Actualizar Código BoxOps (Git Pull)"
-    echo "  4) 🗑️  Desinstalar BoxOps"
-    echo "  5) 👋 Salir"
+    echo -e "${BOLD}${CYAN} ╭─[ MENÚ PRINCIPAL DE INSTALACIÓN ]────────────╮${NC}"
+    echo -e "${CYAN} │${NC}                                              ${CYAN}│${NC}"
+    echo -e "${CYAN} │${NC}  ${BOLD}1)${NC} 🚀 BoxOps Setup Wizard (Asistente Maestro) ${CYAN}│${NC}"
+    echo -e "${CYAN} │${NC}  ${BOLD}2)${NC} 📊 Server Status & Monitoring              ${CYAN}│${NC}"
+    echo -e "${CYAN} │${NC}  ${BOLD}3)${NC} 🔄 Forzar Actualización (Git Pull)         ${CYAN}│${NC}"
+    echo -e "${CYAN} │${NC}  ${BOLD}4)${NC} 🗑️  Desinstalar BoxOps de Este Servidor     ${CYAN}│${NC}"
+    echo -e "${CYAN} │${NC}  ${BOLD}5)${NC} 👋 Salir                                   ${CYAN}│${NC}"
+    echo -e "${CYAN} │${NC}                                              ${CYAN}│${NC}"
+    echo -e "${BOLD}${CYAN} ╰──────────────────────────────────────────────╯${NC}"
     echo ""
-    read -p "Selecciona una opción [1-5]: " option
+    read -p "$(echo -e ${BOLD}Selecciona una opción [1-5]: ${NC})" option
 
     case $option in
         1) master_setup_wizard ;;
@@ -255,12 +302,12 @@ while true; do
         3) update_boxops ;;
         4) uninstall_boxops ;;
         5) 
-            print_success "¡Hasta pronto!"
+            print_success "¡Hasta pronto! Ejecuta 'boxops' en la terminal en cualquier momento."
             exit 0
             ;;
         *) 
             print_error "Opción no válida. Inténtalo de nuevo."
-            sleep 2
+            sleep 1
             ;;
     esac
 done
