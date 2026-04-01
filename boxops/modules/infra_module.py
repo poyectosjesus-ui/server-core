@@ -30,6 +30,15 @@ def setup_infra(
 ):
     """Instala y configura la infraestructura base de Servidor."""
     
+    # Typer sanitization: Si se llama programáticamente, las faltantes llegan como OptionInfo (Truthys)
+    proxy = proxy if isinstance(proxy, bool) else proxy.default
+    observability = observability if isinstance(observability, bool) else observability.default
+    database = database if isinstance(database, bool) else database.default
+    cache = cache if isinstance(cache, bool) else cache.default
+    minio = minio if isinstance(minio, bool) else minio.default
+    backups = backups if isinstance(backups, bool) else backups.default
+    email = email if isinstance(email, str) else None
+    
     if not proxy and not observability and not database and not cache and not minio and not backups:
         console.print("[yellow]Debes especificar qué componente instalar (--proxy, --observability, --database, --cache, --minio, --backups).[/yellow]")
         return
