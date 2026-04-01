@@ -254,8 +254,8 @@ uninstall_boxops() {
 # Main Executable Logic
 # ==========================================
 
-# If not running in a TTY (e.g. piped from curl), bypass menu and run sequential setup natively:
-if [ ! -t 0 ]; then
+# If not running in a TTY or explicitly called with --auto, bypass menu and run sequential setup natively:
+if [ ! -t 0 ] || [ "$1" == "--auto" ]; then
     print_banner
     print_info "Detectada instalación no interactiva (Piped vía Curl)."
     
