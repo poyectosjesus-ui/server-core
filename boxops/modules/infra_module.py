@@ -306,9 +306,11 @@ def infra_wizard():
         if setup_tg:
             tg_token = typer.prompt("Introduce el TOKEN de tu Bot de Telegram", hide_input=True)
             tg_chat = typer.prompt("Introduce tu Chat ID de Telegram")
+            env_file.parent.mkdir(parents=True, exist_ok=True)
             env_file.write_text(f"TELEGRAM_BOT_TOKEN={tg_token}\nTELEGRAM_CHAT_ID={tg_chat}\n")
             console.print("[green]✔ Credenciales de Telegram encriptadas/guardadas.[/green]\n")
         else:
+            env_file.parent.mkdir(parents=True, exist_ok=True)
             env_file.touch()
     
     # === Inspeccionar Estado Previo ===
